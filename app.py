@@ -6,6 +6,7 @@ import os
 app = Flask(__name__)
 
 def generate_salary_png_sequence(annual_salary, duration_sec=10, fps=30, font_path="Meghana.ttf", output_dir="output_frames"):
+    output_dir = os.path.join(os.getcwd(), output_dir)
     os.makedirs(output_dir, exist_ok=True)
 
     per_frame = annual_salary / (365 * 24 * 60 * 60) / fps
@@ -29,13 +30,16 @@ def generate_salary_png_sequence(annual_salary, duration_sec=10, fps=30, font_pa
 
         draw.text(position, salary_text, font=font, fill=(0, 255, 0, 255))
 
-        img.save(f"{output_dir}/frame_{i:04d}.png", "PNG")
+        frame_path = os.path.join(output_dir, f"frame_{i:04d}.png")
+        with open(frame_path, "wb") as f:
+            img.save(f, format="PNG")
 
     print(f"✅ Saved {total_frames} transparent PNG frames to '{output_dir}/'")
 
 
 def generate_gif_from_frames(frame_dir, output_gif="salary_counter.gif", duration=100):
     frames = []
+    frame_dir = os.path.join(os.getcwd(), frame_dir)
     frame_files = sorted([
         os.path.join(frame_dir, file)
         for file in os.listdir(frame_dir)
@@ -47,15 +51,16 @@ def generate_gif_from_frames(frame_dir, output_gif="salary_counter.gif", duratio
         frames.append(img)
 
     if frames:
+        output_gif_path = os.path.join(os.getcwd(), output_gif)
         frames[0].save(
-            output_gif,
+            output_gif_path,
             save_all=True,
             append_images=frames[1:],
             optimize=False,
             duration=duration,
             loop=0
         )
-        print(f"✅ GIF saved as '{output_gif}'")
+        print(f"✅ GIF saved as '{output_gif_path}'")
 
 
 @app.route('/', methods=["GET", "POST"])

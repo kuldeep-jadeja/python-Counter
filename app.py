@@ -34,6 +34,30 @@ def generate_salary_png_sequence(annual_salary, duration_sec=10, fps=30, font_pa
     print(f"✅ Saved {total_frames} transparent PNG frames to '{output_dir}/'")
 
 
+def generate_gif_from_frames(frame_dir, output_gif="salary_counter.gif", duration=100):
+    frames = []
+    frame_files = sorted([
+        os.path.join(frame_dir, file)
+        for file in os.listdir(frame_dir)
+        if file.endswith(".png")
+    ])
+
+    for filename in frame_files:
+        img = Image.open(filename).convert("RGBA")
+        frames.append(img)
+
+    if frames:
+        frames[0].save(
+            output_gif,
+            save_all=True,
+            append_images=frames[1:],
+            optimize=False,
+            duration=duration,
+            loop=0
+        )
+        print(f"✅ GIF saved as '{output_gif}'")
+
+
 @app.route('/', methods=["GET", "POST"])
 def home():
     if request.method == 'POST':
@@ -45,6 +69,7 @@ def home():
             return "Invalid input.", 400
         font_path = request.form.get("font_path", "Meghana.ttf")
         output_dir = request.form.get("output_dir", "output_frames")
+
         generate_salary_png_sequence(
             annual_salary=annual_salary,
             duration_sec=duration_sec,
@@ -52,7 +77,10 @@ def home():
             font_path=font_path,
             output_dir=output_dir
         )
-        return f"✅ Frames generated in '{output_dir}'!"
+
+        generate_gif_from_frames(output_dir)
+
+        return f"✅ Frames generated in '{output_dir}' and GIF saved as 'salary_counter.gif'!"
 
     return """
     <h2>Visual Counter Generator</h2>
